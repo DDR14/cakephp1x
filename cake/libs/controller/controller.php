@@ -1082,32 +1082,39 @@ class Controller extends Object {
 		}
 
 		if (isset($options['sort'])) {
-			$direction = null;
-			if (isset($options['direction'])) {
-				$direction = strtolower($options['direction']);
+			$options['order'] = array();
+			$sorts = explode(';', $options['sort']);
+			if (!isset($options['direction'])) $options['direction'] = null;
+			foreach ($sorts as $sort) {
+				list($field, $direction) = explode(',', $sort, 2) + array(1 => $options['direction']);
+				if (isset($direction)) {
+					$direction = strtolower($direction);
+					if ($direction != 'asc' && $direction != 'desc') {
+						$direction = 'asc';
+					}
+				} else {
+					$direction = 'asc';
+				}
+				$options['order'][$field] = $direction;
 			}
-			if ($direction != 'asc' && $direction != 'desc') {
-				$direction = 'asc';
-			}
-			$options['order'] = array($options['sort'] => $direction);
 		}
 
 		if (!empty($options['order']) && is_array($options['order'])) {
-			$alias = $object->alias ;
-			$key = $field = key($options['order']);
+			foreach ($options['order'] as $key => $value) {
+				$alias = $object->alias;
+				$field = $key;
+				if (strpos($key, '.') !== false) {
+					list($alias, $field) = explode('.', $key);
+				}
+				unset($options['order'][$key]);
 
-			if (strpos($key, '.') !== false) {
-				list($alias, $field) = explode('.', $key);
-			}
-			$value = $options['order'][$key];
-			unset($options['order'][$key]);
-
-			if ($object->hasField($field)) {
-				$options['order'][$alias . '.' . $field] = $value;
-			} elseif ($object->hasField($field, true)) {
-				$options['order'][$field] = $value;
-			} elseif (isset($object->{$alias}) && $object->{$alias}->hasField($field)) {
-				$options['order'][$alias . '.' . $field] = $value;
+				if ($object->hasField($field)) {
+					$options['order'][$alias . '.' . $field] = $value;
+				} elseif ($object->hasField($field, true)) {
+					$options['order'][$field] = $value;
+				} elseif (isset($object->{$alias}) && $object->{$alias}->hasField($field)) {
+					$options['order'][$alias . '.' . $field] = $value;
+				}
 			}
 		}
 		$vars = array('fields', 'order', 'limit', 'page', 'recursive');

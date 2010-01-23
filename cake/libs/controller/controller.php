@@ -1023,8 +1023,19 @@ class Controller extends Object {
 			$object = null;
 		}
 		$assoc = null;
+		$paginateId = null;
 
 		if (is_string($object)) {
+			if (
+				isset($this->paginate[$object]) &&
+				is_array($this->paginate[$object]) &&
+				isset($this->paginate[$object]['model'])
+			) {
+				$paginateId = $object;
+				$object = $this->paginate[$object]['model'];
+				unset($this->paginate[$object]['model']);
+			}
+
 			$assoc = null;
 			if (strpos($object, '.')  !== false) {
 				list($object, $assoc) = pluginSplit($object);
@@ -1071,10 +1082,21 @@ class Controller extends Object {
 		}
 		$options = array_merge($this->params, $this->params['url'], $this->passedArgs);
 
-		if (isset($this->paginate[$object->alias])) {
-			$defaults = $this->paginate[$object->alias];
+		if (!$paginateId) {
+			$paginateId = $object->alias;
+		}
+		
+		if (isset($this->paginate[$paginateId])) {
+			$defaults = $this->paginate[$paginateId];
 		} else {
 			$defaults = $this->paginate;
+		}
+
+		$vars = array('fields', 'sort', 'direction', 'limit', 'show', 'page', 'recursive');
+		foreach ($vars as $key) {
+			if (isset($options[$paginateId . '.' . $key])) {
+				$options[$key] = $options[$paginateId . '.' . $key];
+			}
 		}
 
 		if (isset($options['show'])) {
@@ -1202,7 +1224,7 @@ class Controller extends Object {
 			'defaults'	=> array_merge(array('limit' => 20, 'step' => 1), $defaults),
 			'options'	=> $options
 		);
-		$this->params['paging'][$object->alias] = $paging;
+		$this->params['paging'][$paginateId] = $paging;
 
 		if (!in_array('Paginator', $this->helpers) && !array_key_exists('Paginator', $this->helpers)) {
 			$this->helpers[] = 'Paginator';

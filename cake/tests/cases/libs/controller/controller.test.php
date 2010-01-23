@@ -575,6 +575,34 @@ class ControllerTest extends CakeTestCase {
 		$this->assertEqual($Controller->params['paging']['ControllerComment']['page'], 1);
 		$this->assertEqual($results, array(5, 6, 1, 2, 3, 4));
 
+		$Controller->passedArgs = array(
+			'ControllerPost.sort' => 'ControllerPost.id', 'ControllerPost.direction' => 'desc',
+			'ControllerComment.sort' => 'id', 'ControllerComment.limit' => 3, 'ControllerComment.page' => 2
+		);
+		$results = Set::extract($Controller->paginate('ControllerPost'), '{n}.ControllerPost.id');
+		$this->assertEqual($Controller->params['paging']['ControllerPost']['page'], 1);
+		$this->assertEqual($results, array(3, 2, 1));
+
+		$results = Set::extract($Controller->paginate('ControllerComment'), '{n}.ControllerComment.id');
+		$this->assertEqual($Controller->params['paging']['ControllerComment']['page'], 2);
+		$this->assertEqual($results, array(4, 5, 6));
+
+		$Controller->paginate = array(
+			'Comment1' => array('model' => 'ControllerComment', 'limit' => '2', 'conditions' => array('article_id' => '1')),
+			'Comment2' => array('model' => 'ControllerComment', 'conditions' => array('article_id' => '2'))
+		);
+		$Controller->passedArgs = array(
+			'Comment1.sort' => 'id', 'Comment1.page' => 2,
+			'Comment2.sort' => 'id', 'Comment2.direction' => 'desc'
+		);
+		$results = Set::extract($Controller->paginate('Comment1'), '{n}.ControllerComment.id');
+		$this->assertEqual($Controller->params['paging']['Comment1']['page'], 2);
+		$this->assertEqual($results, array(3, 4));
+
+		$results = Set::extract($Controller->paginate('Comment2'), '{n}.ControllerComment.id');
+		$this->assertEqual($Controller->params['paging']['Comment2']['page'], 1);
+		$this->assertEqual($results, array(6, 5));
+
 		$Controller->passedArgs = array('page' => '1 " onclick="alert(\'xss\');">');
 		$Controller->paginate = array('limit' => 1);
 		$Controller->paginate('ControllerPost');

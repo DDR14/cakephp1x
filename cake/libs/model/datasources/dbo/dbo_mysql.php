@@ -399,7 +399,7 @@ class DboMysqlBase extends DboSource {
 		if (strpos($col, 'text') !== false) {
 			return 'text';
 		}
-		if (strpos($col, 'blob') !== false || $col == 'binary') {
+		if (strpos($col, 'blob') !== false || strpos($col, 'binary') !== false) {
 			return 'binary';
 		}
 		if (strpos($col, 'float') !== false || strpos($col, 'double') !== false || strpos($col, 'decimal') !== false) {

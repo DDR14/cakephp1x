@@ -502,6 +502,18 @@ class DboMysqlTest extends CakeTestCase {
 		$result = $this->db->column('decimal(14,7) unsigned');
 		$expected = 'float';
 		$this->assertEqual($result, $expected);
+
+		$result = $this->db->column('varbinary(32)');
+		$expected = 'binary';
+		$this->assertEqual($result, $expected);
+
+		$result = $this->db->column('binary(16)');
+		$expected = 'binary';
+		$this->assertEqual($result, $expected);
+
+		$result = $this->db->column('longblob');
+		$expected = 'binary';
+		$this->assertEqual($result, $expected);
 	}
 /**
  * testAlterSchemaIndexes method
